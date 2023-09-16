@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+<head>
+    <title>图片转换为GIF</title>
+</head>
+<body>
+    <h1>图片转换为GIF</h1>
+
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="convertToGif()">转换为GIF</button>
+    <a id="downloadLink" style="display: none;" download="converted.gif">下载GIF</a>
+
+    <script>
+        function convertToGif() {
+            var imageInput = document.getElementById('imageInput');
+            var file = imageInput.files[0];
+
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        var canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+
+                        var ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+
+                        var gif = new GIF({
+                            workers: 2,
+                            quality: 10
+                        });
+
+                        gif.addFrame(canvas, { delay: 200 });
+
+                        gif.on('finished', function(blob) {
+                            var downloadLink = document.getElementById('downloadLink');
+                            downloadLink.href = URL.createObjectURL(blob);
+                            downloadLink.style.display = 'block';
+                        });
+
+                        gif.render();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+    <script src="gif.worker.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js"></script>
+</body>
+</html>
