@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            .header {
+                margin: 10px auto;
+                display: flex;
+                align-items: center;
+                flex-flow: column nowrap;
+            }
+
+            .main {
+                margin: 50px auto;
+            }
+
+            .item {
+                padding: 5px;
+            }
+
+            .footer {
+                position: fixed;
+                background-color: rgba(0, 0, 0, .08);
+                width: 100%;
+                padding: 10px;
+                bottom: 0;
+            }
+
+            .button {
+                margin-top: 10px;
+            }
+
+            #downloadLink {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class='header'>
+            <h3>
+                游戏素材变动图 <img id='sample'/>
+            </h3>
+            <h5>支持生成apng, gif格式</h5>
+        </div>
+        <div class='item'>
+            <label>数目(素材中图形数目)：</label>
+            <input id='count' type='number' min='1'/>
+        </div>
+        <div class='item'>
+            <label>素材图：</label>
+            <input type="file" name="myFile" id="myFile"/>
+        </div>
+        <div class='item'>
+            <label>帧延时（默认200ms）：</label>
+            <input id='delay' type='number' min='10' value='200'/>
+        </div>
+        <button class='button' onclick='run()'>开始</button>
+        <div class='main'>
+            <label>输出(部分格式可能不支持):</label>
+            <div class='item'>
+                <label>apng:</label>
+                <img src='' id='result1'/>
+            </div>
+            <div class='item'>
+                <label>gif:</label>
+                <img src='' id='result2'/>
+            </div>
+        </div>
+        <div class='footer'>
+            <div>说明：</div>
+            <div>素材文件一般是.xnb格式，通过https://terraria-zh.gamepedia.com/%E6%9D%90%E8%B4%A8%E5%8C%85 TConvert软件可以转为png， 就可以作为转成动图的材料了。</div>
+        </div>
+        <a href="#" download id="downloadLink" onclick="downloadGif()">下载图片</a>
+    </body>
+    <script src="./pako.js"></script>
+    <script src="./png.js"></script>
+    <script src='./gif.js'></script>
+    <script>
+        const img1 = document.querySelector('#result1');
+        const img2 = document.querySelector('#result2');
+        const file = document.querySelector('#myFile');
+        const counter = document.querySelector('#count');
+        const delayDom = document.querySelector('#delay');
+        const sampleDom = document.querySelector('#sample');
+        const downloadLink = document.querySelector('#downloadLink');
+
+        function parse(image, w, h, count) {
+            const delay = delayDom.value || 200;
+            const reader = new FileReader();
+            reader.readAsArrayBuffer(image);
+            reader.onload = () => {
+                const re = reader.result;
+                const de = UPNG.decode(re);
+                const rgb = UPNG.toRGBA8(de);
+                const list = [];
+                const eh = h / count;
+
+                const gif = new GIF({
+                    workers: 2,
+                    quality: 0,
+                    transparent: 'rgba(0,0,0,0)',
+                    background: 0x000000
+                });
+                gif.on('finished', function(blob) {
+                    img2.src = URL.createObjectURL(blob);
+                });
+
+                for (let i = 0; i < count; i++) {
+                    const new8 = rgb[0].slice(w * 4 * eh * i, w * 4 * eh * (i + 1));
+                    list.push(new8);
+
+                    const imageData = new ImageData(new Uint8ClampedArray(new8), w, eh);
+                    gif.addFrame(imageData, {
+                        delay: delay
+                    });
+                }
+                gif.render();
+                // png
+                const png = UPNG.encode(list, w, eh, 0, Array(count).fill(delay));
+                const arrayPng = new Uint8Array(png);
+                const result = new Blob([arrayPng],{
+                    type: 'image/png'
+                });
+                img1.src = window.URL.createObjectURL(result);
+
+                // 生成下载链接
+                downloadLink.href = img1.src;
+                downloadLink.style.display = 'inline-block';
+                downloadLink.download = 'result.png';
+            };
+        }
+
+        function run() {
+            const value = counter.value;
+            const p = file.files[0];
+            if (!(value >= 1 && !!p)) {
+                alert('请输入');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.readAsArrayBuffer(p);
+            reader.onload = (e) => {
+                const blob = new Blob([reader.result],{
+                    type: 'image/png'
+                });
+                const newImage = new Image();
+                newImage.src = window.URL.createObjectURL(blob);
+                newImage.onload = () => {
+                    const h = newImage.height;
+                    const w = newImage.width;
+                    parse(p, w, h, Number(value) > 0 ? Number(value) : 200);
+                };
+                newImage.onerror = (e) => {
+                    console.log(e);
+                };
+            };
+
+        }
+
+        function downloadGif() {
+            const gifLink = document.querySelector('#result2').src;
+            const a = document.createElement('a');
+            a.href = gifLink;
+            a.download = 'result.gif';
+            a.click();
+        }
+
+        window.onerror = () => {
+            alert('输入错误，或者文件异常');
+        };
+
+        // 标题动图base64
+        const sample = 'xxx';
+        sampleDom.src = sample;
+
+    </script>
+</html>
