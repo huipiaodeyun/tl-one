@@ -1,86 +1,164 @@
+<!DOCTYPE html>
 <html>
-    <head>
-        <style>
-            .header {
-                margin: 10px auto;
-                display: flex;
-                align-items: center;
-                flex-flow: column nowrap;
-            }
 
-            .main {
-                margin: 50px auto;
-            }
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
 
-            .item {
-                padding: 5px;
-            }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            max-width: 95%;
+            text-align: center;
+        }
 
-            .footer {
-                position: fixed;
-                background-color: rgba(0, 0, 0, .08);
-                width: 100%;
-                padding: 10px;
-                bottom: 0;
-            }
+        h3 {
+            margin: 0 0 10px;
+        }
 
-            .button {
-                margin-top: 10px;
-            }
+        h5 {
+            margin: 0;
+            color: #888;
+        }
 
-            #downloadLink {
-                display: none;
-            }
-        </style>
-    </head>
-    <body>
-        <div class='header'>
-            <h3>
-                游戏素材变动图 <img id='sample'/>
-            </h3>
-            <h5>支持生成apng, gif格式</h5>
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .input-label {
+            margin-right: 5px;
+            color: #333;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .button {
+            margin-top: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .output-container {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .output-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .output-label {
+            margin-right: 10px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+
+        .footer {
+            margin-top: 20px;
+            color: #888;
+            font-size: 12px;
+        }
+
+        .footer-link {
+            color: #888;
+        }
+
+        .footer-link:hover {
+            color: #555;
+        }
+
+        .download-link {
+            display: none;
+            margin-top: 10px;
+            font-size: 14px;
+            text-decoration: underline;
+            color: #333;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h3>游戏素材变动图 <img id="sample" /></h3>
+        <h5>支持生成 apng、gif 格式</h5>
+        <div class="input-group">
+            <label class="input-label" for="myFile">素材图：</label>
+            <input type="file" name="myFile" id="myFile" />
+            <button class="button" onclick="selectFile()">选择文件</button>
         </div>
-        <div class='item'>
-            <label>数目(素材中图形数目)：</label>
-            <input id='count' type='number' min='1'/>
+        <div class="input-group">
+            <label class="input-label" for="count">数目（素材中图形数目）：</label>
+            <input id="count" type="number" min="1" />
         </div>
-        <div class='item'>
-            <label>素材图：</label>
-            <input type="file" name="myFile" id="myFile"/>
+        <div class="input-group">
+            <label class="input-label" for="delay">帧延时（默认 200ms）：</label>
+            <input id="delay" type="number" min="10" value="200" />
         </div>
-        <div class='item'>
-            <label>帧延时（默认200ms）：</label>
-            <input id='delay' type='number' min='10' value='200'/>
-        </div>
-        <button class='button' onclick='run()'>开始</button>
-        <div class='main'>
-            <label>输出(部分格式可能不支持):</label>
-            <div class='item'>
-                <label>apng:</label>
-                <img src='' id='result1'/>
+        <button class="button" onclick="run()">开始</button>
+        <div class="output-container">
+            <div class="output-item">
+                <label class="output-label">apng：</label>
+                <img src="" id="result1" />
             </div>
-            <div class='item'>
-                <label>gif:</label>
-                <img src='' id='result2'/>
+            <div class="output-item">
+                <label class="output-label">gif：</label>
+                <img src="" id="result2" />
             </div>
         </div>
-        <div class='footer'>
+        <div class="footer">
             <div>说明：</div>
-            <div>素材文件一般是.xnb格式，通过https://terraria-zh.gamepedia.com/%E6%9D%90%E8%B4%A8%E5%8C%85 TConvert软件可以转为png， 就可以作为转成动图的材料了。</div>
+            <div>素材文件一般是.xnb格式，通过<a class="footer-link" href="https://terraria-zh.gamepedia.com/%E6%9D%90%E8%B4%A8%E5%8C%85" target="_blank">TConvert软件</a>可以转为png，就可以作为转成动图的材料了。</div>
         </div>
-        <a href="#" download id="downloadLink">下载图片</a>
-    </body>
+        <div class="download-link" onclick="downloadGif()">下载图片</div>
+    </div>
+
     <script src="./pako.js"></script>
     <script src="./png.js"></script>
-    <script src='./gif.js'></script>
+    <script src="./gif.js"></script>
     <script>
-        const img1 = document.querySelector('#result1');
-        const img2 = document.querySelector('#result2');
-        const file = document.querySelector('#myFile');
-        const counter = document.querySelector('#count');
-        const delayDom = document.querySelector('#delay');
-        const sampleDom = document.querySelector('#sample');
-        const downloadLink = document.querySelector('#downloadLink');
+        const img1 = document.querySelector("#result1");
+        const img2 = document.querySelector("#result2");
+        const file = document.querySelector("#myFile");
+        const counter = document.querySelector("#count");
+        const delayDom = document.querySelector("#delay");
+        const sampleDom = document.querySelector("#sample");
+        const downloadLink = document.querySelector(".download-link");
+
+        function selectFile() {
+            file.click();
+        }
 
         function parse(image, w, h, count) {
             const delay = delayDom.value || 200;
@@ -96,10 +174,10 @@
                 const gif = new GIF({
                     workers: 2,
                     quality: 0,
-                    transparent: 'rgba(0,0,0,0)',
+                    transparent: "rgba(0,0,0,0)",
                     background: 0x000000
                 });
-                gif.on('finished', function(blob) {
+                gif.on("finished", function (blob) {
                     img2.src = URL.createObjectURL(blob);
                 });
 
@@ -113,18 +191,15 @@
                     });
                 }
                 gif.render();
-                // png
+
                 const png = UPNG.encode(list, w, eh, 0, Array(count).fill(delay));
                 const arrayPng = new Uint8Array(png);
-                const result = new Blob([arrayPng],{
-                    type: 'image/png'
+                const result = new Blob([arrayPng], {
+                    type: "image/png"
                 });
                 img1.src = window.URL.createObjectURL(result);
 
-                // 生成下载链接
-                downloadLink.href = img1.src;
-                downloadLink.style.display = 'inline-block';
-                downloadLink.download = 'result.png';
+                downloadLink.style.display = "inline-block";
             };
         }
 
@@ -132,15 +207,15 @@
             const value = counter.value;
             const p = file.files[0];
             if (!(value >= 1 && !!p)) {
-                alert('请输入');
+                alert("请输入");
                 return;
             }
 
             const reader = new FileReader();
             reader.readAsArrayBuffer(p);
             reader.onload = (e) => {
-                const blob = new Blob([reader.result],{
-                    type: 'image/png'
+                const blob = new Blob([reader.result], {
+                    type: "image/png"
                 });
                 const newImage = new Image();
                 newImage.src = window.URL.createObjectURL(blob);
@@ -154,22 +229,25 @@
                 };
             };
 
+            downloadLink.style.display = "none";
         }
 
         function downloadGif() {
-            const gifLink = document.querySelector('#result2').src;
-            const a = document.createElement('a');
+            const gifLink = document.querySelector("#result2").src;
+            const a = document.createElement("a");
             a.href = gifLink;
-            a.download = 'result.gif';
+            a.download = "result.gif";
             a.click();
         }
 
         window.onerror = () => {
-            alert('输入错误，或者文件异常');
+            alert("输入错误，或者文件异常");
         };
 
         // 标题动图base64
-        const sample = 'xxx';
+        const sample = "xxx";
         sampleDom.src = sample;
     </script>
+</body>
+
 </html>
